@@ -63,3 +63,133 @@
   (/ (* (estimate-integral P x1 x2 y1 y2 trials)
         (* (- x2 x1) (- y2 y1)))
      (expt (/ (- x2 x1) 2) 2)))
+(estimate-pi P 2.0 8.0 4.0 10.0 10000)
+;3.6
+(define rand-var 0)
+(define (rand cmd)
+  (cond ((eq? cmd 'generate) (begin (set! rand-var (- (* (+ rand-var 1) -2) 5)) rand-var));shitty not random num generator lol
+        ((eq? cmd 'reset) (lambda (new-init-var) (set! rand-var new-init-var)))
+        (else (error "Unknown command. Accepted commands -- generate, reset -- RAND" cmd))))
+;3.7
+(define (check-password pass attempt consecutive-attempts)
+  (lambda (func)
+    (if (eq? pass attempt)
+        func
+        (if (> consecutive-attempts 5)
+            call-the-cops
+            (begin (set! consecutive-attempts (+ 1 consecutive-attempts))
+                   (error "Incorrect password"))))))
+(define (make-account pw balance)
+  (let ((consecutive-attempts 0))
+  (define (call-the-cops . args) (error "I called the cops"))
+  (define (withdraw amount)
+    (if (>= balance amount)
+        (begin (set! balance (- balance amount))
+               balance)
+        "Insufficient funds"))
+  (define (deposit amount)
+    (set! balance (+ balance amount))
+          balance)
+  (define (dispatch pass m)
+    (cond ((eq? m 'withdraw)
+                ((check-password pass pw consecutive-attempts) withdraw))
+          ((eq? m 'deposit)
+                ((check-password pass pw consecutive-attempts) deposit))
+          (else (error "Unknown request -- MAKE-ACCOUNT" m))))
+  dispatch))
+(define (make-joint account ogpw jointpw)
+  (let ((consecutive-attempts 0))
+    (define (dispatch pass m)
+      (account ogpw m))
+  ((check-password jointpw pass consecutive-attempts) dispatch)))
+(define a (make-account 'password 100))
+((a 'password 'withdraw) 10)
+(define b (make-joint a 'password 'sup))
+((b 'sup 'withdraw) 10)
+;close but i'm passing vars around wrong. i tried to be too clever with check-pw and now it's annoying passing args
+;i should have just redone this
+;3.8
+(define (funny x)
+  (lambda (y)
+    (let ((z x))
+      (begin (set! x y) z))))
+(define f (funny 0))
+(+ (f 0) (f 1))
+(define g (funny 0))
+(+ (g 1) (g 0))
+;3.13
+(define (reverse x)
+  (define (loop x y)
+    (if (null? x)
+        y
+        (let ((temp (cdr x)))
+          (set-cdr! x y)
+          (loop temp x))))
+  (loop x '()))
+;3.16
+(define (count-pairs x)
+  (if (not (pair? x))
+      0
+      (+ (count-pairs (car x))
+         (count-pairs (cdr x))
+         1)))
+(count-pairs (list 'a 'b 'c))
+; => 3
+(define second (cons 'a 'b))
+(define third (cons 'a 'b))
+(define first (cons second third))
+  (set-car! third second)
+(count-pairs first)
+; => 4
+(define third (cons 'a 'b))
+(define second (cons third third))
+(define first (cons second second))
+(count-pairs first)
+; => 7
+(define lst (list 'a 'b 'c))
+(set-cdr! (cddr lst) lst)
+(count-pairs lst)  ; never returns
+;3.17
+(define (count-pairs x)
+  (let ((already-counted '()))
+    (define (count x)
+      (if (or (not (pair? x)) (memq x already-counted))
+          0
+          (begin
+            (set! already-counted (cons x already-counted))
+            (+ (count (car x))
+               (count (cdr x))
+               1))))
+    (count x)))
+;3.18
+(define (is-cycle? x)
+  (let ((encountered '()))
+    (define (cycle-through x)
+      (if (not (pair? x))
+          #f
+          (if (memq x encountered)
+               #t
+               (begin
+                 (set! encountered (cons x encountered))
+                 (cycle-through (cdr x))))))
+    (cycle-through x)))
+(define one (list 'a))
+(define two (cons one 'b))
+(define three (cons two one))
+(set-car! one three)
+(set-cdr! one two)
+(set-cdr! two three)
+;3.19
+(define (is-cycle? x)
+  (let ((encountered '()))
+    (define (cycle-through x)
+      (if (not (pair? x))
+          #f
+          (if (eq? x encountered)
+               #t
+                 (if (not (pair? encountered))
+                   (begin
+                     (set! encountered (car x))
+                     (cycle-through (cdr x)))
+                   (cycle-through (cdr x))))))
+    (cycle-through x)))
